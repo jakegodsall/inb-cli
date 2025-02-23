@@ -36,11 +36,18 @@ func main() {
 
 	client := notion.NewNotionClient(notionApiKey, inboxId)
 
-	data, err := client.GetDatabase()
+	// data, err := client.GetDatabase()
+	// if err != nil {
+	// 	err = fmt.Errorf("something went wrong: %v", err)
+	// 	fmt.Println(err)
+	// 	return
+	// }
+	// fmt.Println(string(data))
+
+	err = client.PostToInbox("This is a dummy task from Go!")
 	if err != nil {
 		err = fmt.Errorf("something went wrong: %v", err)
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(string(data))
 }
