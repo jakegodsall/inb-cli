@@ -50,7 +50,7 @@ func ReadConfig(filename string) (Config, error) {
 	var config Config
 	configDir, err := GetOrCreateConfigDir()
 	if err != nil {
-		return nil, err
+		return config, err
 	}
 
 	configPath := filepath.Join(configDir, filename)
