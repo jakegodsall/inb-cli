@@ -2,37 +2,38 @@ package notion
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
-	"os"
-	"path"
+	"net/url"
 )
 
 type NotionClient struct {
-	ApiKey string
+	ApiKey  string
+	InboxId string
 }
 
-func (*NotionClient) GetDatabase() ([]byte, error) {
-	inboxId := os.Getenv("NOTION_INBOX_ID")
-	if inboxId == "" {
-		return nil, fmt.Errorf("notion inbox database id not stored in the NOTION_INBOX_ID environment variable")
+func NewNotionClient(apiKey string, inboxId string) *NotionClient {
+	return &NotionClient{
+		ApiKey:  apiKey,
+		InboxId: inboxId,
 	}
+}
 
-	basePath := "https://api.notion.com/v1/databases"
-	url := path.Join(basePath, inboxId)
-
-	authToken := os.Getenv("NOTION_API_KEY")
-	if authToken == "" {
-		return nil, fmt.Errorf("api key not stored in the NOTION_API_KEY environment variable")
+func (nc *NotionClient) GetDatabase() ([]byte, error) {
+	basePath, err := url.Parse("https://api.notion.com/v1/databases/")
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse base URL: %w", err)
 	}
+	url := basePath.ResolveReference(&url.URL{Path: nc.InboxId}).String()
+	log.Println("Request URL: " + url)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	req.Header.Set("Authorization", "Bearer " + url)
+	req.Header.Set("Authorization", "Bearer " + nc.ApiKey)
 	req.Header.Set("Notion-Version", "2022-06-28")
 
 	client := &http.Client{}
@@ -46,10 +47,14 @@ func (*NotionClient) GetDatabase() ([]byte, error) {
 		return nil, fmt.Errorf("notion API request failed with status: %d", resp.StatusCode)
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
 	return body, nil
+}
+
+func (*NotionClient) PostToInbox(task string) error {
+	return fmt.Errorf("testing")
 }

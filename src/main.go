@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/jakegodsall/inb-cli/config"
@@ -22,12 +23,18 @@ func main() {
 	notionApiKey := os.Getenv("NOTION_API_KEY")
 	if notionApiKey == "" {
 		err = fmt.Errorf("notion api key not set in the NOTION_API_KEY environment variable")
-		fmt.Println(err)
+		log.Fatal(err)
 		return
 	}
-	client := notion.NotionClient{
-		ApiKey: notionApiKey,
+
+	inboxId := os.Getenv("NOTION_INBOX_DATABASE_ID")
+	if inboxId == "" {
+		err = fmt.Errorf("notion inbox database id not set in the NOTION_INBOX_DATABASE_ID environment variable")
+		log.Fatal(err)
+		return
 	}
+
+	client := notion.NewNotionClient(notionApiKey, inboxId)
 
 	data, err := client.GetDatabase()
 	if err != nil {
@@ -35,5 +42,5 @@ func main() {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(data)
+	fmt.Println(string(data))
 }
